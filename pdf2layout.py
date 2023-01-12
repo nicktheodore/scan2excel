@@ -1,6 +1,8 @@
 import os
+import argparse
 import pdf2image
 import numpy as np
+import pandas as pd
 import layoutparser as lp
 from PIL.PpmImagePlugin import PpmImageFile
 
@@ -10,7 +12,7 @@ def convert_from_path(filepath):
     assert os.path.exists(filepath), "Error: {} does not exist".format(filepath)
 
     fid = os.path.basename(filepath)
-    doc = pdf2image.convert_from_path("03181601.pdf")
+    doc = pdf2image.convert_from_path(filepath)
     
     folder = 'doc'
     if folder not in os.listdir():
@@ -44,15 +46,15 @@ def detect_document_layout(img):
     return detected, img
     
 
-def extract_layout_contents(detected, img, elements=["Table"]):
+def extract_layout_contents(detected, img):
     assert type(detected) is lp.elements.layout.Layout
-    assert type(img) is PpmImageFile
+    assert type(img) is np.ndarray
 
     # load tesseract model
     ocr = lp.TesseractAgent(languages='eng+fra+ita')
 
     dic_predicted = {}
-    for block in [block for block in detected if block.type in elements]:
+    for block in [block for block in detected if block.type in ["Table"]]:
         ## segmentation
         segmented = block.pad(left=15, right=15, top=5, 
                     bottom=5).crop_image(img)
@@ -97,16 +99,31 @@ def create_layout_dataframe(layout):
 def main(filepath):
     assert type(filepath) is str
 
+    layout_dfs = []
     _, doc        = convert_from_path(filepath)
-    detected, img = detect_document_layout(doc)
-    layout        = extract_layout_contents(detected, img)
-    layout_df     = create_layout_dataframe(layout)
+
+    for img in doc: 
+        detected, img = detect_document_layout(img)
+        layout        = extract_layout_contents(detected, img)
+        layout_df     = create_layout_dataframe(layout)
+        layout_dfs.append(layout_df)
+
+    layout_df = pd.concat(layout_dfs)
     
     return layout_df
 
 
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+                    prog = 'pdf2layout',
+                    description = 'Extracts text from tables in PDF scans using layout detection and OCR',
+                    epilog = 'Extracts text from tables in PDF scans using layout detection and OCR')
+
+    parser.add_argument("path")
+
+    args = parser.parse_args()
     
-
-
+    layout_df = main(args.path)
+    print(layout_df)
 
 
