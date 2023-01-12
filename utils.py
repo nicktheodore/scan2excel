@@ -48,9 +48,9 @@ def relabel_flagged(row, **kwargs):
     label = row['col_label']
 
     if flag == "MOVE_RIGHT":
-        row['labels']  = labels[labels.index(label)+1]
+        row['col_label']  = labels[labels.index(label)+1]
         row['flagged'] = "OK"
     if flag == "MOVE_LEFT":
-        row['labels']  = labels[labels.index(label)-1]
+        row['col_label']  = labels[labels.index(label)-1]
         row['flagged'] = "OK"
     return row
