@@ -58,6 +58,7 @@ def extract_layout_contents(detected, img):
         ## segmentation
         segmented = block.pad(left=15, right=15, top=5, 
                     bottom=5).crop_image(img)
+
         ## extraction
         extracted = ocr.detect(segmented,
                                 agg_output_level=lp.TesseractFeatureType.LINE, 
@@ -124,6 +125,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     layout_df = main(args.path)
+    layout_df.to_csv('data/pdf2layout.csv')
+
     print(layout_df)
 
 
