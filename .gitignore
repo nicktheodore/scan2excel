@@ -131,3 +131,4 @@ dmypy.json
 # Misc data files
 doc/
 data/
+tables/
