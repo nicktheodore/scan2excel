@@ -11,8 +11,8 @@ def infer_column_boundaries_from_clusters(layout_df, labels):
     labels = set(labels)
     column_boundaries = []
     
-    gk = layout_df.groupby('labels')
-    
+    gk = layout_df.groupby('col_label')
+
     for label in labels:
         x_1 = gk.get_group(label)['x_1'].describe()
         x_2 = gk.get_group(label)['x_2'].describe()
@@ -22,7 +22,7 @@ def infer_column_boundaries_from_clusters(layout_df, labels):
         x_max = x_2.get('max') if x_2.get('max') < x_2.get('mean') + 1.5*x_2.get('std') else x_2.get('75%')
         column_boundaries.append([label, x_min, x_max])
     
-    return pd.DataFrame(columns=['labels', 'x_min', 'x_max'], data=column_boundaries)
+    return pd.DataFrame(columns=['col_label', 'x_min', 'x_max'], data=column_boundaries)
 
 
 def infer_label_order_from_column_boundaries(column_boundaries_df):
@@ -31,7 +31,7 @@ def infer_label_order_from_column_boundaries(column_boundaries_df):
     column_boundaries_df['x_bc'] = column_boundaries_df['x_min'] + 0.5*column_boundaries_df['x_max']
     column_boundaries_df.sort_values(by=['x_bc'], inplace=True)
     
-    return column_boundaries_df['labels'].to_list()
+    return column_boundaries_df['col_label'].to_list()
     
 
 def error_flagger(row):
@@ -45,7 +45,7 @@ def relabel_flagged(row, **kwargs):
     assert labels
 
     flag = row['flagged']
-    label = row['labels']
+    label = row['col_label']
 
     if flag == "MOVE_RIGHT":
         row['labels']  = labels[labels.index(label)+1]
